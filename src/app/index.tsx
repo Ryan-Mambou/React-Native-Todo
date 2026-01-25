@@ -95,12 +95,17 @@ export default function Index() {
         </View>
       </View>
 
-      <View
-      >
-        <View>
-          <Text>Back into react native!</Text>
+
+      <View style={styles.taskContainer}>
+        <View style={styles.noTaskContainer}>
+          <Ionicons name="today-outline" size={40} color="black" style={styles.noTaskContainerIcon} />
+          <View style={styles.noTaskContainerTitleContainer}>
+            <Text style={styles.noTaskContainerTitle}>No task yet</Text>
+            <Text style={styles.noTaskContainerSubtitle}>Tap the + button to add your first task</Text>
+          </View>
         </View>
       </View>
+
 
       <Modal
         visible={showFilterModal}
@@ -237,5 +242,36 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  taskContainer: {
+  },
+  noTaskContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    gap: 20,
+    marginTop: 100,
+  },
+  noTaskContainerIcon: {
+    backgroundColor: 'lightgray',
+    borderRadius: 100,
+    padding: 20,
+  },
+  noTaskContainerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  noTaskContainerSubtitle: {
+    fontSize: 16,
+    color: 'gray',
+  },
+  noTaskContainerTitleContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
   },
 });
