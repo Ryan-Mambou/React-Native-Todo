@@ -22,7 +22,7 @@ export function FiterModal ({ selectedCategory, selectedPriority, selectedSort,
         <Pressable 
         style={styles.modalOverlay}
         onPress={onHandleCloseFilterModal}
-      >
+        >
         <Pressable style={styles.filterModal} onPress={(e) => e.stopPropagation()}>
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>Category</Text>

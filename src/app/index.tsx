@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
-import { FiterModal } from '../components/fiterModal';
+import { AddTaskModal } from '../components/modals/addTaskModal';
+import { FiterModal } from '../components/modals/fiterModal';
 import { Todo } from "../types/todo";
 import { supabase } from "../utils/supabase";
 
@@ -12,6 +13,7 @@ export default function Index() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [activeTab, setActiveTab] = useState<('all' | 'active' | 'done')>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
@@ -60,31 +62,31 @@ export default function Index() {
     };
     fetchTodos();
   }, []);
-  
+
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
-        <View style={styles.headerTopLeft}>
-          <Text style={styles.headerTopLeftTitle}>My Tasks</Text>
-          <Text style={styles.headerTopLeftSubtitle}>10 tasks remaining</Text>
+          <View style={styles.headerTopLeft}>
+            <Text style={styles.headerTopLeftTitle}>My Tasks</Text>
+            <Text style={styles.headerTopLeftSubtitle}>10 tasks remaining</Text>
+          </View>
+          <View style={styles.headerTopRight}>
+            <Ionicons name="color-palette-outline" size={24} color="black" />
+            <Text>Manage Categories</Text>
+          </View>
         </View>
-        <View style={styles.headerTopRight}>
-          <Ionicons name="color-palette-outline" size={24} color="black" />
-          <Text>Manage Categories</Text>
+        <View style={styles.searchInputContainer}>
+          <Ionicons name="search-outline" size={24} color="gray" style={styles.searchIcon} />
+          <TextInput style={styles.searchInput} placeholder="Search tasks..."
+            placeholderTextColor="gray" />
         </View>
-        </View>
-      <View style={styles.searchInputContainer}>
-        <Ionicons name="search-outline" size={24} color="gray" style={styles.searchIcon} />
-        <TextInput style={styles.searchInput} placeholder="Search tasks..." 
-        placeholderTextColor="gray" />
-      </View>
         <View style={styles.headerBottom}>
           <View style={styles.statusFilter}>
             {['All', 'Active', 'Done'].map((status) => (
               <Text key={status} style={[styles.tabText, activeTab === status ? styles.activeTabText : {}]}
-              onPress={() => handleTabPress(status as 'all' | 'active' | 'done')}>
+                onPress={() => handleTabPress(status as 'all' | 'active' | 'done')}>
                 {status}
               </Text>
             ))}
@@ -93,27 +95,35 @@ export default function Index() {
         </View>
       </View>
 
-    <View
-    >
-      <View>
-      <Text>Back into react native!</Text>
+      <View
+      >
+        <View>
+          <Text>Back into react native!</Text>
+        </View>
       </View>
-    </View>
 
-    <Modal
-      visible={showFilterModal}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={handleCloseFilterModal}
-    >
-      <FiterModal selectedCategory={selectedCategory} selectedPriority={selectedPriority} 
-      selectedSort={selectedSort} onHandleCloseFilterModal={handleCloseFilterModal} hasActiveFilters={hasActiveFilters}
-      onHandleClearFilters={handleClearFilters} onHandleSelectCategory={handleSelectCategory} 
-      onHandleSelectPriority={handleSelectPriority} onHandleSelectSort={handleSelectSort} />
-    </Modal>
-    <TouchableOpacity style={styles.addTaskButton} onPress={() => {}}>
-      <Ionicons name="add-outline" size={24} color="white" />
-    </TouchableOpacity>
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseFilterModal}
+      >
+        <FiterModal selectedCategory={selectedCategory} selectedPriority={selectedPriority}
+          selectedSort={selectedSort} onHandleCloseFilterModal={handleCloseFilterModal} hasActiveFilters={hasActiveFilters}
+          onHandleClearFilters={handleClearFilters} onHandleSelectCategory={handleSelectCategory}
+          onHandleSelectPriority={handleSelectPriority} onHandleSelectSort={handleSelectSort} />
+      </Modal>
+      <TouchableOpacity style={styles.addTaskButton} onPress={() => setShowAddTaskModal(true)}>
+        <Ionicons name="add-outline" size={24} color="white" />
+      </TouchableOpacity>
+      <Modal
+        visible={showAddTaskModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAddTaskModal(false)}
+      >
+        <AddTaskModal onHandleCloseAddTaskModal={() => setShowAddTaskModal(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -179,7 +189,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: '50%',
-    transform: [{ translateY: -2 }], 
+    transform: [{ translateY: -2 }],
   },
   headerBottom: {
     display: 'flex',
