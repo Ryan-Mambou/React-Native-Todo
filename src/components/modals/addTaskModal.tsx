@@ -84,12 +84,6 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Due Date</Text>
           <View style={styles.dateInputContainer}>
-            {/* <Ionicons name="calendar-outline" size={20} color="gray" style={styles.calendarIcon} /> */}
-            {/* <TextInput 
-              style={[styles.addTaskModalInput, styles.dateInput]} 
-              placeholder="Pick a date" 
-              placeholderTextColor="gray"
-            /> */}
             <DateTimePicker
               mode="date"
               value={selected ?? new Date()}

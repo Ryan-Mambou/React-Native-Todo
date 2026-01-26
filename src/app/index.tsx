@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 5,
     gap: 10,
-    backgroundColor: 'lightgray',
+    backgroundColor: '#f1f5f9',
     borderRadius: 5,
   },
   activeTabText: {
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: 'gray',
-    backgroundColor: 'lightgray',
+    backgroundColor: '#f1f5f9',
     borderRadius: 5,
     padding: 5,
     textAlign: 'center',
@@ -244,18 +244,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   taskContainer: {
+    flex: 1,
   },
   noTaskContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    gap: 20,
     marginTop: 100,
+    gap: 20,
   },
   noTaskContainerIcon: {
-    backgroundColor: 'lightgray',
+    backgroundColor: '#f1f5f9',
     borderRadius: 100,
     padding: 20,
   },
