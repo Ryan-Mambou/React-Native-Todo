@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Controller, FormProvider } from 'react-hook-form';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAddTask } from '../../hooks/useAddTask';
-import { useCategories } from '../../hooks/useCategories';
+import { useCategories } from '../../hooks/useGetCategories';
 import SelectModal from './selectModal';
 interface AddTaskModalProps {
   onHandleCloseAddTaskModal: () => void;
@@ -27,15 +27,15 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
   const { categories } = useCategories();
   const categoriesOptions = categories?.map(adaptCategoryToSelectInput) || [];
   const { formState, onSubmit, isSubmitting } = useAddTask({ onHandleCloseAddTaskModal });
-  const { control, setValue, watch, formState: { errors } } = formState;
+  const { control, setValue, getValues, watch, formState: { errors } } = formState;
 
-  const selectedCategory = watch('category') || 'No category';
-  const selectedPriority = watch('priority') || 'Medium';
-  const selectedDate = watch('dueDate') || new Date();
+
+  const selectedCategory = watch('category_id') ?? '';
+  const selectedPriority = watch('priority') ?? 'medium';
+  const selectedDate = watch('dueDate');
 
   useEffect(() => {
-    setValue('category', 'No category');
-    setValue('priority', 'Medium');
+    setValue('priority', 'medium');
     setValue('dueDate', new Date());
   }, [setValue]);
 
@@ -45,8 +45,8 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
     }
   };
 
-  const handleCategorySelect = (category: string) => {
-    setValue('category', category, { shouldValidate: true });
+  const handleCategorySelect = (categoryId: string) => {
+    setValue('category_id', categoryId, { shouldValidate: true });
     setShowCategoryPicker(false);
   };
 
@@ -127,21 +127,21 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
             <Text style={styles.inputLabel}>Category</Text>
             <Controller
               control={control}
-              name="category"
+              name="category_id"
               render={({ field: { value } }) => (
                 <>
                   <TouchableOpacity
                     style={[
                       styles.dropdownInput,
-                      errors.category && styles.inputError
+                      errors.category_id && styles.inputError
                     ]}
                     onPress={() => setShowCategoryPicker(true)}
                   >
-                    <Text style={styles.dropdownText}>{categoriesOptions.find(category => category.value === value)?.label || 'No category'}</Text>
+                    <Text style={styles.dropdownText}>{categoriesOptions.find(cat => String(cat.value) === String(value ?? ''))?.label || 'No category'}</Text>
                     <Ionicons name="chevron-down-outline" size={20} color="gray" />
                   </TouchableOpacity>
-                  {errors.category && (
-                    <Text style={styles.errorText}>{errors.category.message}</Text>
+                  {errors.category_id && (
+                    <Text style={styles.errorText}>{errors.category_id.message}</Text>
                   )}
                 </>
               )}
@@ -183,7 +183,7 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
                   <View style={styles.dateInputContainer}>
                     <DateTimePicker
                       mode="date"
-                      value={value || new Date()}
+                      value={value}
                       onChange={handleDateChange}
                     />
                   </View>
@@ -216,7 +216,7 @@ export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) =
           animationType="slide"
           onRequestClose={() => setShowCategoryPicker(false)}
         >
-          <SelectModal title="Select Category" options={categoriesOptions} selectedOption={selectedCategory} onSelect={handleCategorySelect} onClose={() => setShowCategoryPicker(false)} />
+          <SelectModal title="Select Category" options={categoriesOptions} selectedOption={selectedCategory || ''} onSelect={handleCategorySelect} onClose={() => setShowCategoryPicker(false)} />
         </Modal>
         <Modal
           visible={showPriorityPicker}

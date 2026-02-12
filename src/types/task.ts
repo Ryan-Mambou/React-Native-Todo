@@ -1,7 +1,7 @@
 export interface Task {
     title: string;
     description: string;
-    categoryId: string;
+    category_id: number;
     priority: string;
     dueDate: Date;
     status?: 'pending' | 'completed';

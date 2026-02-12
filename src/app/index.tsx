@@ -1,18 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
 import { AddTaskModal } from '../components/modals/addTaskModal';
 import { FiterModal } from '../components/modals/fiterModal';
 import TaskItem from '../components/taskItem';
-import { useCategories } from '../hooks/useCategories';
-import taskService from '../services/task';
-import { Task } from "../types/task";
+import { useCategories } from '../hooks/useGetCategories';
+import { useGetTasks } from '../hooks/useGetTasks';
 
 
 export default function Index() {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTab, setActiveTab] = useState<('all' | 'active' | 'done')>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
@@ -20,6 +18,7 @@ export default function Index() {
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
   const { categories } = useCategories();
+  const { tasks } = useGetTasks();
 
 
   const handleTabPress = (tab: 'all' | 'active' | 'done') => {
@@ -55,14 +54,6 @@ export default function Index() {
     setSelectedSort(sort);
   };
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      const data = await taskService.getTasks();
-      setTasks(data);
-    };
-    fetchTasks();
-  }, []);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerContainer}>
@@ -96,7 +87,7 @@ export default function Index() {
 
 
       <View style={styles.taskContainer}>
-        {tasks.length === 0 && (<View style={styles.noTaskContainer}>
+        {tasks?.length === 0 && (<View style={styles.noTaskContainer}>
           <Ionicons name="today-outline" size={40} color="black" style={styles.noTaskContainerIcon} />
           <View style={styles.noTaskContainerTitleContainer}>
             <Text style={styles.noTaskContainerTitle}>No task yet</Text>
@@ -104,12 +95,12 @@ export default function Index() {
           </View>
         </View>)}
 
-        {tasks.length > 0 && (
+        {tasks?.length && tasks?.length > 0 && (
           <FlatList
             data={tasks}
             keyExtractor={(item, index) => `${item.title}-${index}`}
             renderItem={({ item }) => {
-              const category = categories?.find(cat => cat.id === item.categoryId);
+              const category = categories?.find(cat => cat.id === item.category_id);
               return <TaskItem task={item} category={category} />;
             }}
             contentContainerStyle={{ paddingVertical: 8 }}

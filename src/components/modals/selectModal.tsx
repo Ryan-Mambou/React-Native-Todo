@@ -11,7 +11,6 @@ interface SelectModalProps {
 }
 
 const SelectModal = ({ title, options, selectedOption, onSelect, onClose }: SelectModalProps) => {
-  console.log('options', options);
   return (
     <Pressable
       style={styles.pickerOverlay}
@@ -31,7 +30,7 @@ const SelectModal = ({ title, options, selectedOption, onSelect, onClose }: Sele
               styles.pickerOption,
               selectedOption === option.value && styles.pickerOptionSelected
             ]}
-            onPress={() => onSelect(option.value)}
+            onPress={() => onSelect(String(option.value))}
           >
             <Text style={[
               styles.pickerOptionText,

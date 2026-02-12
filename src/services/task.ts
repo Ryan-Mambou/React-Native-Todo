@@ -10,6 +10,7 @@ const taskService = {
     return data;
   },
   createTask: async (task: Task) => {
+
     const { data, error } = await supabase.from('Task').insert(task);
     if (error) {
       throw error;
