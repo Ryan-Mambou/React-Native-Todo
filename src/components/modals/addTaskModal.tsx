@@ -1,125 +1,235 @@
+import adaptCategoryToSelectInput from '@/src/adapters/adaptCategoryToSelectInput';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Controller, FormProvider } from 'react-hook-form';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useAddTask } from '../../hooks/useAddTask';
+import { useCategories } from '../../hooks/useCategories';
 import SelectModal from './selectModal';
-
 interface AddTaskModalProps {
   onHandleCloseAddTaskModal: () => void;
 }
 
 export const AddTaskModal = ({ onHandleCloseAddTaskModal }: AddTaskModalProps) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('No category');
-  const [selectedPriority, setSelectedPriority] = useState<string>('Medium');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showPriorityPicker, setShowPriorityPicker] = useState(false);
-  const [selected, setSelected] = useState<Date>();
-  const categories = ['No category', 'Personal', 'Work', 'Shopping'];
-  const priorities = ['Low', 'Medium', 'High'];
+  const priorities = [{
+    label: 'Low',
+    value: 'low',
+  }, {
+    label: 'Medium',
+    value: 'medium',
+  }, {
+    label: 'High',
+    value: 'high',
+  }]
+  const { categories } = useCategories();
+  const categoriesOptions = categories?.map(adaptCategoryToSelectInput) || [];
+  const { formState, onSubmit, isSubmitting } = useAddTask({ onHandleCloseAddTaskModal });
+  const { control, setValue, watch, formState: { errors } } = formState;
 
+  const selectedCategory = watch('category') || 'No category';
+  const selectedPriority = watch('priority') || 'Medium';
+  const selectedDate = watch('dueDate') || new Date();
 
-  const handleDateChange = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      setSelected(selectedDate);
+  useEffect(() => {
+    setValue('category', 'No category');
+    setValue('priority', 'Medium');
+    setValue('dueDate', new Date());
+  }, [setValue]);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (event.type === 'set' && selectedDate) {
+      setValue('dueDate', selectedDate, { shouldValidate: true });
     }
   };
 
   const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
+    setValue('category', category, { shouldValidate: true });
     setShowCategoryPicker(false);
   };
 
   const handlePrioritySelect = (priority: string) => {
-    setSelectedPriority(priority);
+    setValue('priority', priority, { shouldValidate: true });
     setShowPriorityPicker(false);
   };
 
+
   return (
-    <Pressable style={styles.modalOverlay} onPress={onHandleCloseAddTaskModal}>
-      <Pressable style={styles.addTaskModal} onPress={(e) => e.stopPropagation()}>
-        <View style={styles.addTaskModalHeader}>
-          <Text style={styles.addTaskModalTitle}>Add New Task</Text>
-          <TouchableOpacity onPress={onHandleCloseAddTaskModal}>
-            <Ionicons name="close-outline" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
+    <FormProvider {...formState}>
+      <Pressable style={styles.modalOverlay} onPress={onHandleCloseAddTaskModal}>
+        <Pressable style={styles.addTaskModal} onPress={(e) => e.stopPropagation()}>
+          <View style={styles.addTaskModalHeader}>
+            <Text style={styles.addTaskModalTitle}>Add New Task</Text>
+            <TouchableOpacity onPress={onHandleCloseAddTaskModal}>
+              <Ionicons name="close-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Task Name *</Text>
-          <TextInput
-            style={styles.addTaskModalInput}
-            placeholder="What needs to be done?"
-            placeholderTextColor="gray"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Description</Text>
-          <TextInput
-            style={[styles.addTaskModalInput, styles.descriptionInput]}
-            placeholder="Add some details..."
-            placeholderTextColor="gray"
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Category</Text>
-          <TouchableOpacity style={styles.dropdownInput} onPress={() => setShowCategoryPicker(true)}>
-            <Text style={styles.dropdownText}>{selectedCategory}</Text>
-            <Ionicons name="chevron-down-outline" size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Priority</Text>
-          <TouchableOpacity style={styles.dropdownInput} onPress={() => setShowPriorityPicker(true)}>
-            <Text style={styles.dropdownText}>{selectedPriority}</Text>
-            <Ionicons name="chevron-down-outline" size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Due Date</Text>
-          <View style={styles.dateInputContainer}>
-            <DateTimePicker
-              mode="date"
-              value={selected ?? new Date()}
-              onChange={(event, selectedDate) => handleDateChange(selectedDate)}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Task Name *</Text>
+            <Controller
+              control={control}
+              name="title"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[
+                      styles.addTaskModalInput,
+                      errors.title && styles.inputError
+                    ]}
+                    placeholder="What needs to be done?"
+                    placeholderTextColor="gray"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                  />
+                  {errors.title && (
+                    <Text style={styles.errorText}>{errors.title.message}</Text>
+                  )}
+                </>
+              )}
             />
           </View>
-        </View>
 
-        <View style={styles.actionRowContainer}>
-          <TouchableOpacity style={styles.addTaskModalButton} onPress={() => { }}>
-            <Text style={styles.addTaskModalButtonText}>Add Task</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelTaskModalButton} onPress={onHandleCloseAddTaskModal}>
-            <Text style={styles.cancelTaskModalButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Description</Text>
+            <Controller
+              control={control}
+              name="description"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[
+                      styles.addTaskModalInput,
+                      styles.descriptionInput,
+                      errors.description && styles.inputError
+                    ]}
+                    placeholder="Add some details..."
+                    placeholderTextColor="gray"
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                  />
+                  {errors.description && (
+                    <Text style={styles.errorText}>{errors.description.message}</Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Category</Text>
+            <Controller
+              control={control}
+              name="category"
+              render={({ field: { value } }) => (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownInput,
+                      errors.category && styles.inputError
+                    ]}
+                    onPress={() => setShowCategoryPicker(true)}
+                  >
+                    <Text style={styles.dropdownText}>{categoriesOptions.find(category => category.value === value)?.label || 'No category'}</Text>
+                    <Ionicons name="chevron-down-outline" size={20} color="gray" />
+                  </TouchableOpacity>
+                  {errors.category && (
+                    <Text style={styles.errorText}>{errors.category.message}</Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Priority</Text>
+            <Controller
+              control={control}
+              name="priority"
+              render={({ field: { value } }) => (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownInput,
+                      errors.priority && styles.inputError
+                    ]}
+                    onPress={() => setShowPriorityPicker(true)}
+                  >
+                    <Text style={styles.dropdownText}>{priorities.find(priority => priority.value === value)?.label || 'Medium'}</Text>
+                    <Ionicons name="chevron-down-outline" size={20} color="gray" />
+                  </TouchableOpacity>
+                  {errors.priority && (
+                    <Text style={styles.errorText}>{errors.priority.message}</Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Due Date</Text>
+            <Controller
+              control={control}
+              name="dueDate"
+              render={({ field: { value } }) => (
+                <>
+                  <View style={styles.dateInputContainer}>
+                    <DateTimePicker
+                      mode="date"
+                      value={value || new Date()}
+                      onChange={handleDateChange}
+                    />
+                  </View>
+                  {errors.dueDate && (
+                    <Text style={styles.errorText}>{errors.dueDate.message}</Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
+
+          <View style={styles.actionRowContainer}>
+            <TouchableOpacity
+              style={[styles.addTaskModalButton, isSubmitting && styles.buttonDisabled]}
+              onPress={onSubmit}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.addTaskModalButtonText}>
+                {isSubmitting ? 'Adding...' : 'Add Task'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelTaskModalButton} onPress={onHandleCloseAddTaskModal}>
+              <Text style={styles.cancelTaskModalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+        <Modal
+          visible={showCategoryPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowCategoryPicker(false)}
+        >
+          <SelectModal title="Select Category" options={categoriesOptions} selectedOption={selectedCategory} onSelect={handleCategorySelect} onClose={() => setShowCategoryPicker(false)} />
+        </Modal>
+        <Modal
+          visible={showPriorityPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPriorityPicker(false)}
+        >
+          <SelectModal title="Select Priority" options={priorities} selectedOption={selectedPriority} onSelect={handlePrioritySelect} onClose={() => setShowPriorityPicker(false)} />
+        </Modal>
       </Pressable>
-      <Modal
-        visible={showCategoryPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowCategoryPicker(false)}
-      >
-        <SelectModal title="Select Category" options={categories} selectedOption={selectedCategory} onSelect={handleCategorySelect} onClose={() => setShowCategoryPicker(false)} />
-      </Modal>
-      <Modal
-        visible={showPriorityPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowPriorityPicker(false)}
-      >
-        <SelectModal title="Select Priority" options={priorities} selectedOption={selectedPriority} onSelect={handlePrioritySelect} onClose={() => setShowPriorityPicker(false)} />
-      </Modal>
-    </Pressable>
-  )
-}
+    </FormProvider>
+  );
+};
 
 const styles = StyleSheet.create({
   modalOverlay: {
@@ -165,6 +275,14 @@ const styles = StyleSheet.create({
     color: 'black',
     backgroundColor: 'white',
   },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 4,
+  },
   descriptionInput: {
     minHeight: 100,
     paddingTop: 12,
@@ -209,6 +327,9 @@ const styles = StyleSheet.create({
     flex: 4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   addTaskModalButtonText: {
     color: 'white',

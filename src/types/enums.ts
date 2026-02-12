@@ -1,5 +1,5 @@
 export enum STATUS {
-    TODO = 'todo',
+    PENDING = 'pending',
     DONE = 'done',
 }
 

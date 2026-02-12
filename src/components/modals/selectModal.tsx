@@ -4,13 +4,14 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 
 interface SelectModalProps {
   title: string;
-  options: string[];
+  options: { label: string, value: string }[];
   selectedOption: string;
   onSelect: (option: string) => void;
   onClose: () => void;
 }
 
 const SelectModal = ({ title, options, selectedOption, onSelect, onClose }: SelectModalProps) => {
+  console.log('options', options);
   return (
     <Pressable
       style={styles.pickerOverlay}
@@ -25,20 +26,20 @@ const SelectModal = ({ title, options, selectedOption, onSelect, onClose }: Sele
         </View>
         {options.map((option) => (
           <TouchableOpacity
-            key={option}
+            key={option.value}
             style={[
               styles.pickerOption,
-              selectedOption === option && styles.pickerOptionSelected
+              selectedOption === option.value && styles.pickerOptionSelected
             ]}
-            onPress={() => onSelect(option)}
+            onPress={() => onSelect(option.value)}
           >
             <Text style={[
               styles.pickerOptionText,
-              selectedOption === option && styles.pickerOptionTextSelected
+              selectedOption === option.value && styles.pickerOptionTextSelected
             ]}>
-              {option}
+              {option.label}
             </Text>
-            {selectedOption === option && (
+            {selectedOption === option.value && (
               <Ionicons name="checkmark" size={20} color="black" />
             )}
           </TouchableOpacity>

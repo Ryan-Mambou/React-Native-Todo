@@ -1,22 +1,26 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
 import { AddTaskModal } from '../components/modals/addTaskModal';
 import { FiterModal } from '../components/modals/fiterModal';
-import { Todo } from "../types/todo";
-import { supabase } from "../utils/supabase";
+import TaskItem from '../components/taskItem';
+import { useCategories } from '../hooks/useCategories';
+import taskService from '../services/task';
+import { Task } from "../types/task";
 
 
 export default function Index() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTab, setActiveTab] = useState<('all' | 'active' | 'done')>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
+  const { categories } = useCategories();
+
 
   const handleTabPress = (tab: 'all' | 'active' | 'done') => {
     setActiveTab(tab);
@@ -52,17 +56,12 @@ export default function Index() {
   };
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      const { data, error } = await supabase.from('Todos').select('*');
-      if (error) {
-        console.error('Error fetching todos:', error);
-      } else {
-        setTodos(data);
-      }
+    const fetchTasks = async () => {
+      const data = await taskService.getTasks();
+      setTasks(data);
     };
-    fetchTodos();
+    fetchTasks();
   }, []);
-
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -97,13 +96,25 @@ export default function Index() {
 
 
       <View style={styles.taskContainer}>
-        <View style={styles.noTaskContainer}>
+        {tasks.length === 0 && (<View style={styles.noTaskContainer}>
           <Ionicons name="today-outline" size={40} color="black" style={styles.noTaskContainerIcon} />
           <View style={styles.noTaskContainerTitleContainer}>
             <Text style={styles.noTaskContainerTitle}>No task yet</Text>
             <Text style={styles.noTaskContainerSubtitle}>Tap the + button to add your first task</Text>
           </View>
-        </View>
+        </View>)}
+
+        {tasks.length > 0 && (
+          <FlatList
+            data={tasks}
+            keyExtractor={(item, index) => `${item.title}-${index}`}
+            renderItem={({ item }) => {
+              const category = categories?.find(cat => cat.id === item.categoryId);
+              return <TaskItem task={item} category={category} />;
+            }}
+            contentContainerStyle={{ paddingVertical: 8 }}
+          />
+        )}
       </View>
 
 
