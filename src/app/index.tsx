@@ -17,12 +17,17 @@ export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
+  const [isCompleted, setIsCompleted] = useState(false);
   const { categories } = useCategories();
   const { tasks } = useGetTasks();
 
 
   const handleTabPress = (tab: 'all' | 'active' | 'done') => {
     setActiveTab(tab);
+  };
+
+  const handleToggleComplete = () => {
+    setIsCompleted(!isCompleted);
   };
 
 
@@ -101,7 +106,7 @@ export default function Index() {
             keyExtractor={(item, index) => `${item.title}-${index}`}
             renderItem={({ item }) => {
               const category = categories?.find(cat => cat.id === item.category_id);
-              return <TaskItem task={item} category={category} />;
+              return <TaskItem task={item} category={category} isCompleted={isCompleted} onToggleComplete={handleToggleComplete} />;
             }}
             contentContainerStyle={{ paddingVertical: 8 }}
           />

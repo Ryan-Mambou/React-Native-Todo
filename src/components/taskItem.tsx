@@ -1,30 +1,32 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Task } from '../types/task';
 import { Category } from '../types/category';
+import { Task } from '../types/task';
 
 interface TaskItemProps {
     task: Task;
     category?: Category;
-    onToggleComplete?: () => void;
+    isCompleted: boolean;
+    onToggleComplete: () => void;
 }
 
-const TaskItem = ({ task, category, onToggleComplete }: TaskItemProps) => {
+const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemProps) => {
     const formatDate = (date: Date | string) => {
         const d = typeof date === 'string' ? new Date(date) : date;
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return `${months[d.getMonth()]} ${d.getDate()}`;
     };
 
+
     const getPriorityColor = (priority: string) => {
         switch (priority.toLowerCase()) {
             case 'high':
-                return { bg: '#FEE2E2', text: '#DC2626' }; // Red
+                return { bg: '#FEE2E2', text: '#DC2626' };
             case 'medium':
-                return { bg: '#FEF3C7', text: '#D97706' }; // Yellow/Orange
+                return { bg: '#FEF3C7', text: '#D97706' };
             case 'low':
-                return { bg: '#D1FAE5', text: '#059669' }; // Green
+                return { bg: '#D1FAE5', text: '#059669' };
             default:
                 return { bg: '#FEF3C7', text: '#D97706' };
         }
@@ -33,16 +35,20 @@ const TaskItem = ({ task, category, onToggleComplete }: TaskItemProps) => {
     const priorityColors = getPriorityColor(task.priority);
 
     return (
-        <View style={styles.container}>
+        <TouchableOpacity style={[styles.container, isCompleted && styles.completedContainer]} onPress={onToggleComplete} activeOpacity={0.7}>
             <View style={styles.leftSection}>
-                <TouchableOpacity onPress={onToggleComplete} style={styles.checkboxContainer}>
-                    <Ionicons name="ellipse-outline" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
-                
+                <View style={styles.checkboxContainer}>
+                    {isCompleted ? (
+                        <Ionicons name="checkmark-circle" size={24} color="black" />
+                    ) : (
+                        <Ionicons name="ellipse-outline" size={24} color="#9CA3AF" />
+                    )}
+                </View>
+
                 <View style={styles.taskDetails}>
-                    <Text style={styles.taskTitle}>{task.title}</Text>
-                    <Text style={styles.taskDescription}>{task.description}</Text>
-                    
+                    <Text style={[styles.taskTitle, isCompleted && styles.completedText]}>{task.title}</Text>
+                    <Text style={[styles.taskDescription, isCompleted && styles.completedText]}>{task.description}</Text>
+
                     <View style={styles.metaRow}>
                         {category && (
                             <View style={[styles.categoryTag, { backgroundColor: category.color || '#9333EA' }]}>
@@ -56,13 +62,13 @@ const TaskItem = ({ task, category, onToggleComplete }: TaskItemProps) => {
                     </View>
                 </View>
             </View>
-            
+
             <View style={[styles.priorityTag, { backgroundColor: priorityColors.bg }]}>
                 <Text style={[styles.priorityText, { color: priorityColors.text }]}>
                     {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                 </Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
@@ -84,6 +90,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2,
+    },
+    completedContainer: {
+        opacity: 0.5,
     },
     leftSection: {
         flexDirection: 'row',
@@ -144,6 +153,9 @@ const styles = StyleSheet.create({
     priorityText: {
         fontSize: 12,
         fontWeight: '600',
+    },
+    completedText: {
+        textDecorationLine: 'line-through',
     },
 });
 
