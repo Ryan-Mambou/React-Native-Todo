@@ -41,7 +41,6 @@ export const useUpdateTaskModal = () => {
     const { handleSubmit, reset } = formState;
 
     useEffect(() => {
-        console.log('taskToEdit', taskToEdit);
         if (taskToEdit) {
             const dueDate = typeof taskToEdit.dueDate === 'string'
                 ? new Date(taskToEdit.dueDate)

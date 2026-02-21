@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from "react";
+import React, { useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
@@ -18,6 +18,7 @@ export default function Index() {
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { categories } = useCategories();
   const { tasks } = useGetTasks();
 
@@ -45,6 +46,10 @@ export default function Index() {
     setSelectedSort('Newest First');
   };
 
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+  };
+
   const handleSelectCategory = (category: string) => {
     setSelectedCategory(category);
   };
@@ -59,13 +64,69 @@ export default function Index() {
     setSelectedSort(sort);
   };
 
+  const filteredTasks = React.useMemo(() => {
+    if (!tasks) return [];
+    let result = [...tasks];
+
+    if (activeTab === 'active') {
+      result = result.filter((task) => task.status !== 'completed');
+    } else if (activeTab === 'done') {
+      result = result.filter((task) => task.status === 'completed');
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((task) =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description?.toLowerCase().includes(query) ?? false)
+      );
+    }
+
+
+    if (selectedCategory !== 'All') {
+      result = result.filter((task) => String(task.category_id) === selectedCategory);
+    }
+
+
+    if (selectedPriority !== 'All') {
+      result = result.filter((task) => task.priority.toLowerCase() === selectedPriority.toLowerCase());
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (selectedSort) {
+        case 'Due Date': {
+          const dateA = typeof a.dueDate === 'string' ? new Date(a.dueDate).getTime() : new Date(a.dueDate).getTime();
+          const dateB = typeof b.dueDate === 'string' ? new Date(b.dueDate).getTime() : new Date(b.dueDate).getTime();
+          return dateA - dateB;
+        }
+        case 'Priority': {
+          const order = { high: 0, medium: 1, low: 2 };
+          const priorityA = order[a.priority?.toLowerCase() as keyof typeof order] ?? 3;
+          const priorityB = order[b.priority?.toLowerCase() as keyof typeof order] ?? 3;
+          return priorityA - priorityB;
+        }
+        case 'A-Z':
+          return (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' });
+        case 'Newest First':
+        default: {
+          const dateA = a.created_at ? (typeof a.created_at === 'string' ? new Date(a.created_at).getTime() : new Date(a.created_at).getTime()) : 0;
+          const dateB = b.created_at ? (typeof b.created_at === 'string' ? new Date(b.created_at).getTime() : new Date(b.created_at).getTime()) : 0;
+          return dateB - dateA;
+        }
+      }
+    });
+
+    return result;
+  }, [tasks, activeTab, searchQuery, selectedCategory, selectedPriority, selectedSort]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View style={styles.headerTopLeft}>
             <Text style={styles.headerTopLeftTitle}>My Tasks</Text>
-            <Text style={styles.headerTopLeftSubtitle}>10 tasks remaining</Text>
+            <Text style={styles.headerTopLeftSubtitle}>{filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} remaining</Text>
           </View>
           <View style={styles.headerTopRight}>
             <Ionicons name="color-palette-outline" size={24} color="black" />
@@ -75,7 +136,7 @@ export default function Index() {
         <View style={styles.searchInputContainer}>
           <Ionicons name="search-outline" size={24} color="gray" style={styles.searchIcon} />
           <TextInput style={styles.searchInput} placeholder="Search tasks..."
-            placeholderTextColor="gray" />
+            placeholderTextColor="gray" value={searchQuery} onChangeText={handleSearch} />
         </View>
         <View style={styles.headerBottom}>
           <View style={styles.statusFilter}>
@@ -100,10 +161,20 @@ export default function Index() {
           </View>
         </View>)}
 
-        {tasks?.length && tasks?.length > 0 && (
+        {tasks && tasks.length > 0 && filteredTasks.length === 0 && (
+          <View style={styles.noTaskContainer}>
+            <Ionicons name="filter-outline" size={40} color="black" style={styles.noTaskContainerIcon} />
+            <View style={styles.noTaskContainerTitleContainer}>
+              <Text style={styles.noTaskContainerTitle}>No tasks match your filters</Text>
+              <Text style={styles.noTaskContainerSubtitle}>Try adjusting your filters or search</Text>
+            </View>
+          </View>
+        )}
+
+        {filteredTasks.length > 0 && (
           <FlatList
-            data={tasks}
-            keyExtractor={(item, index) => `${item.title}-${index}`}
+            data={filteredTasks}
+            keyExtractor={(item, index) => item.id ?? `${item.title}-${index}`}
             renderItem={({ item }) => {
               const category = categories?.find(cat => cat.id === item.category_id);
               return <TaskItem task={item} category={category} isCompleted={isCompleted} onToggleComplete={handleToggleComplete} />;

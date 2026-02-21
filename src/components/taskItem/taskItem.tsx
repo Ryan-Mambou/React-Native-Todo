@@ -1,12 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useState } from 'react';
+import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Category } from '../../types/category';
 import { Task } from '../../types/task';
 import { DeleteTaskModal } from './deleteTaskModal/deleteTaskModal';
 import { useDeleteTaskModal } from './deleteTaskModal/hooks/useDeleteTaskModal';
-import { UpdateTaskModal } from './updateTaskModal/updateTaskModal';
 import { useUpdateTaskModal } from './updateTaskModal/hooks/useUpdateTaskModal';
+import { UpdateTaskModal } from './updateTaskModal/updateTaskModal';
 
 interface TaskItemProps {
     task: Task;
@@ -57,7 +57,7 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
 
                     <View style={styles.metaRow}>
                         {category && (
-                            <View style={[styles.categoryTag, { backgroundColor: category.color || '#9333EA' }]}>
+                            <View style={[styles.categoryTag, { backgroundColor: category.color }]}>
                                 <Text style={styles.categoryText}>{category.name}</Text>
                             </View>
                         )}
