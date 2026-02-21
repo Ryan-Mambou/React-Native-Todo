@@ -122,13 +122,20 @@ export default function Index() {
     return result;
   }, [tasks, activeTab, searchQuery, selectedCategory, selectedPriority, selectedSort]);
 
+  const remainingTasks = React.useMemo(() => {
+    return tasks?.filter((task) => task.status !== 'completed');
+  }, [tasks]);
+
+
+  console.log('filteredTasks', filteredTasks);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View style={styles.headerTopLeft}>
             <Text style={styles.headerTopLeftTitle}>My Tasks</Text>
-            <Text style={styles.headerTopLeftSubtitle}>{filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} remaining</Text>
+            <Text style={styles.headerTopLeftSubtitle}>{remainingTasks?.length} task{remainingTasks?.length !== 1 ? 's' : ''} remaining</Text>
           </View>
           <View style={styles.headerTopRight}>
             <Ionicons name="color-palette-outline" size={24} color="black" />
