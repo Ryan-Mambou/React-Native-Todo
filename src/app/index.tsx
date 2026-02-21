@@ -5,32 +5,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
 import { AddTaskModal } from '../components/modals/addTaskModal';
 import { FiterModal } from '../components/modals/fiterModal';
+import { useTaskItem } from '../components/taskItem/hooks/useTaskItem';
 import TaskItem from '../components/taskItem/taskItem';
 import { useCategories } from '../hooks/useGetCategories';
 import { useGetTasks } from '../hooks/useGetTasks';
+import { TABS } from '../types/tabs';
+import { Task } from '../types/task';
 
 
 export default function Index() {
-  const [activeTab, setActiveTab] = useState<('all' | 'active' | 'done')>('all');
+  const [activeTab, setActiveTab] = useState<TABS>(TABS.ALL);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedSort, setSelectedSort] = useState<string>('Newest First');
-  const [isCompleted, setIsCompleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { categories } = useCategories();
   const { tasks } = useGetTasks();
+  const { toggleComplete } = useTaskItem();
 
 
-  const handleTabPress = (tab: 'all' | 'active' | 'done') => {
+  const handleTabPress = (tab: TABS) => {
     setActiveTab(tab);
   };
 
-  const handleToggleComplete = () => {
-    setIsCompleted(!isCompleted);
+  const handleToggleComplete = (task: Task) => {
+    toggleComplete(task);
   };
-
 
   const handleShowFilterModal = () => {
     setShowFilterModal(true);
@@ -69,6 +71,7 @@ export default function Index() {
     let result = [...tasks];
 
     if (activeTab === 'active') {
+      console.log('filtering active tasks');
       result = result.filter((task) => task.status !== 'completed');
     } else if (activeTab === 'done') {
       result = result.filter((task) => task.status === 'completed');
@@ -92,7 +95,6 @@ export default function Index() {
       result = result.filter((task) => task.priority.toLowerCase() === selectedPriority.toLowerCase());
     }
 
-    // Sort
     result.sort((a, b) => {
       switch (selectedSort) {
         case 'Due Date': {
@@ -140,10 +142,10 @@ export default function Index() {
         </View>
         <View style={styles.headerBottom}>
           <View style={styles.statusFilter}>
-            {['All', 'Active', 'Done'].map((status) => (
+            {Object.values(TABS).map((status) => (
               <Text key={status} style={[styles.tabText, activeTab === status ? styles.activeTabText : {}]}
-                onPress={() => handleTabPress(status as 'all' | 'active' | 'done')}>
-                {status}
+                onPress={() => handleTabPress(status)}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </Text>
             ))}
           </View>
@@ -177,7 +179,7 @@ export default function Index() {
             keyExtractor={(item, index) => item.id ?? `${item.title}-${index}`}
             renderItem={({ item }) => {
               const category = categories?.find(cat => cat.id === item.category_id);
-              return <TaskItem task={item} category={category} isCompleted={isCompleted} onToggleComplete={handleToggleComplete} />;
+              return <TaskItem task={item} category={category} onToggleComplete={() => handleToggleComplete(item)} />;
             }}
             contentContainerStyle={{ paddingVertical: 8 }}
           />

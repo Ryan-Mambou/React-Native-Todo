@@ -11,11 +11,11 @@ import { UpdateTaskModal } from './updateTaskModal/updateTaskModal';
 interface TaskItemProps {
     task: Task;
     category?: Category;
-    isCompleted: boolean;
     onToggleComplete: () => void;
 }
 
-const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemProps) => {
+const TaskItem = ({ task, category, onToggleComplete }: TaskItemProps) => {
+    const isCompleted = task.status === 'completed';
     const formatDate = (date: Date | string) => {
         const d = typeof date === 'string' ? new Date(date) : date;
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
