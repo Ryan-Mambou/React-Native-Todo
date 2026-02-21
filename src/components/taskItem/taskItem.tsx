@@ -1,8 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Category } from '../types/category';
-import { Task } from '../types/task';
+import React, { useState } from 'react';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Category } from '../../types/category';
+import { Task } from '../../types/task';
+import { DeleteTaskModal } from './deleteTaskModal/deleteTaskModal';
+import { useDeleteTaskModal } from './deleteTaskModal/hooks/useDeleteTaskModal';
+import { UpdateTaskModal } from './updateTaskModal/updateTaskModal';
 
 interface TaskItemProps {
     task: Task;
@@ -17,6 +20,8 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return `${months[d.getMonth()]} ${d.getDate()}`;
     };
+    const [isUpdateTaskModalVisible, setIsUpdateTaskModalVisible] = useState(false);
+    const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, handleCancel: handleDeleteCancel, handleDelete, isDeleting } = useDeleteTaskModal();
 
 
     const getPriorityColor = (priority: string) => {
@@ -35,15 +40,15 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
     const priorityColors = getPriorityColor(task.priority);
 
     return (
-        <TouchableOpacity style={[styles.container, isCompleted && styles.completedContainer]} onPress={onToggleComplete} activeOpacity={0.7}>
+        <View style={[styles.container, isCompleted && styles.completedContainer]}>
             <View style={styles.leftSection}>
-                <View style={styles.checkboxContainer}>
+                <TouchableOpacity style={styles.checkboxContainer} onPress={onToggleComplete}>
                     {isCompleted ? (
                         <Ionicons name="checkmark-circle" size={24} color="black" />
                     ) : (
                         <Ionicons name="ellipse-outline" size={24} color="#9CA3AF" />
                     )}
-                </View>
+                </TouchableOpacity>
 
                 <View style={styles.taskDetails}>
                     <Text style={[styles.taskTitle, isCompleted && styles.completedText]}>{task.title}</Text>
@@ -62,21 +67,33 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
                     </View>
                 </View>
             </View>
-
-            <View style={[styles.priorityTag, { backgroundColor: priorityColors.bg }]}>
-                <Text style={[styles.priorityText, { color: priorityColors.text }]}>
-                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                </Text>
+            <View style={styles.rightSection}>
+                <View style={[styles.priorityTag, { backgroundColor: priorityColors.bg }]}>
+                    <Text style={[styles.priorityText, { color: priorityColors.text }]}>
+                        {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </Text>
+                </View>
+                <View style={styles.actionButtons}>
+                    <Ionicons name='pencil-outline' size={18} color="#9CA3AF" onPress={() => setIsUpdateTaskModalVisible(true)} />
+                    <Ionicons name='trash-outline' size={18} color="#9CA3AF" onPress={() => task.id && openDeleteModal(task.id)} />
+                </View>
             </View>
-        </TouchableOpacity>
+            <Modal visible={isUpdateTaskModalVisible} transparent={true} animationType="fade" onRequestClose={() => setIsUpdateTaskModalVisible(false)}>
+                <UpdateTaskModal />
+            </Modal>
+            <Modal visible={isDeleteModalOpen} transparent={true} animationType="fade" onRequestClose={handleDeleteCancel}>
+                <DeleteTaskModal onCancel={handleDeleteCancel} onDelete={handleDelete} isDeleting={isDeleting} />
+            </Modal>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'stretch',
         backgroundColor: 'white',
         borderRadius: 12,
         padding: 16,
@@ -98,6 +115,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flex: 1,
         alignItems: 'flex-start',
+        alignSelf: 'stretch',
     },
     checkboxContainer: {
         marginRight: 12,
@@ -153,6 +171,17 @@ const styles = StyleSheet.create({
     priorityText: {
         fontSize: 12,
         fontWeight: '600',
+    },
+    rightSection: {
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        alignSelf: 'stretch',
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 8,
     },
     completedText: {
         textDecorationLine: 'line-through',

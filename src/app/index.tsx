@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AdvancedFilter from '../components/advancedFilter';
 import { AddTaskModal } from '../components/modals/addTaskModal';
 import { FiterModal } from '../components/modals/fiterModal';
-import TaskItem from '../components/taskItem';
+import TaskItem from '../components/taskItem/taskItem';
 import { useCategories } from '../hooks/useGetCategories';
 import { useGetTasks } from '../hooks/useGetTasks';
 
