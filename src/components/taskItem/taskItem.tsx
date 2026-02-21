@@ -6,6 +6,7 @@ import { Task } from '../../types/task';
 import { DeleteTaskModal } from './deleteTaskModal/deleteTaskModal';
 import { useDeleteTaskModal } from './deleteTaskModal/hooks/useDeleteTaskModal';
 import { UpdateTaskModal } from './updateTaskModal/updateTaskModal';
+import { useUpdateTaskModal } from './updateTaskModal/hooks/useUpdateTaskModal';
 
 interface TaskItemProps {
     task: Task;
@@ -20,7 +21,7 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return `${months[d.getMonth()]} ${d.getDate()}`;
     };
-    const [isUpdateTaskModalVisible, setIsUpdateTaskModalVisible] = useState(false);
+    const { isOpen: isUpdateModalOpen, openModal: openUpdateModal, closeModal: closeUpdateModal, taskToEdit, formState: updateFormState, onSubmit: updateOnSubmit, isSubmitting: isUpdating } = useUpdateTaskModal();
     const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, handleCancel: handleDeleteCancel, handleDelete, isDeleting } = useDeleteTaskModal();
 
 
@@ -74,12 +75,18 @@ const TaskItem = ({ task, category, isCompleted, onToggleComplete }: TaskItemPro
                     </Text>
                 </View>
                 <View style={styles.actionButtons}>
-                    <Ionicons name='pencil-outline' size={18} color="#9CA3AF" onPress={() => setIsUpdateTaskModalVisible(true)} />
+                    <Ionicons name='pencil-outline' size={18} color="#9CA3AF" onPress={() => openUpdateModal(task)} />
                     <Ionicons name='trash-outline' size={18} color="#9CA3AF" onPress={() => task.id && openDeleteModal(task.id)} />
                 </View>
             </View>
-            <Modal visible={isUpdateTaskModalVisible} transparent={true} animationType="fade" onRequestClose={() => setIsUpdateTaskModalVisible(false)}>
-                <UpdateTaskModal />
+            <Modal visible={isUpdateModalOpen} transparent animationType="fade" onRequestClose={closeUpdateModal}>
+                <UpdateTaskModal
+                    task={taskToEdit}
+                    onClose={closeUpdateModal}
+                    formState={updateFormState}
+                    onSubmit={updateOnSubmit}
+                    isSubmitting={isUpdating}
+                />
             </Modal>
             <Modal visible={isDeleteModalOpen} transparent={true} animationType="fade" onRequestClose={handleDeleteCancel}>
                 <DeleteTaskModal onCancel={handleDeleteCancel} onDelete={handleDelete} isDeleting={isDeleting} />
